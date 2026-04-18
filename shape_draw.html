@@ -145,11 +145,9 @@ let model;
 // Load model from folder
 async function loadModel(){
 
-    model = await tf.loadLayersModel(
-
-        "tfjs_model/model.json"
-
-    );
+    model = await tf.loadGraphModel(
+    "tfjs_model/model.json"
+	);
 
     // Show ready message
     document.getElementById("result").innerText =
@@ -191,8 +189,8 @@ async function predictShape(){
     image = image.expandDims(0);
 
     // Run prediction
-    let prediction =
-        model.predict(image);
+   let prediction =
+    await model.executeAsync(image);
 
     // Get highest probability index
     let index =
