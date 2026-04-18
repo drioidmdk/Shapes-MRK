@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<!-- Basic HTML page -->
+<html>
+
+<head>
+
+<!-- Load TensorFlow.js library -->
+<!-- This allows JavaScript to run neural networks -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
+<title>Shape Recognition Demo</title>
+
+</head>
+
+<body>
+
+<!-- Page title -->
+<h2>Draw a Shape</h2>
+
+<!-- Drawing canvas -->
+<!-- width and height define drawing area -->
+<canvas id="canvas"
+        width="200"
+        height="200"
+        style="border:1px solid black">
+</canvas>
+
+<br><br>
+
+<!-- Predict button -->
+<button onclick="predictShape()">
+Predict Shape
+</button>
+
+<!-- Clear button -->
+<button onclick="clearCanvas()">
+Clear
+</button>
+
+<br><br>
+
+<!-- Where prediction result appears -->
+<p id="result">
+Prediction will appear here
+</p>
+
+<script>
+
+// ----------------------------
+// Canvas Setup
+// ----------------------------
+
+// Get canvas element
+let canvas =
+    document.getElementById("canvas");
+
+// Get drawing context
+let ctx =
+    canvas.getContext("2d");
+
+// Fill background black
+ctx.fillStyle = "black";
+
+ctx.fillRect(
+    0,
+    0,
+    200,
+    200
+);
+
+// Track whether mouse is drawing
+let drawing = false;
+
+// Start drawing when mouse pressed
+canvas.onmousedown =
+    () => drawing = true;
+
+// Stop drawing when mouse released
+canvas.onmouseup =
+    () => drawing = false;
+
+// Draw while mouse moves
+canvas.onmousemove =
+function(e){
+
+    // If not drawing, stop
+    if(!drawing) return;
+
+    // Draw white pixels
+    ctx.fillStyle = "white";
+
+    ctx.beginPath();
+
+    // Draw small circle at mouse location
+    ctx.arc(
+
+        e.offsetX,
+
+        e.offsetY,
+
+        5,
+
+        0,
+
+        Math.PI * 2
+
+    );
+
+    ctx.fill();
+
+};
+
+// ----------------------------
+// Clear Canvas Function
+// ----------------------------
+
+function clearCanvas(){
+
+    // Fill entire canvas black
+    ctx.fillStyle = "black";
+
+    ctx.fillRect(
+
+        0,
+        0,
+        200,
+        200
+
+    );
+
+    // Reset result text
+    document.getElementById("result").innerText =
+        "Canvas cleared";
+
+}
+
+// ----------------------------
+// Load Model
+// ----------------------------
+
+// Variable to hold model
+let model;
+
+// Load model from folder
+async function loadModel(){
+
+    model = await tf.loadLayersModel(
+
+        "tfjs_model/model.json"
+
+    );
+
+    // Show ready message
+    document.getElementById("result").innerText =
+        "Model Loaded — Draw a Shape!";
+
+}
+
+// Run model loading
+loadModel();
+
+// ----------------------------
+// Prediction Function
+// ----------------------------
+
+async function predictShape(){
+
+    // Convert canvas to tensor
+    let image = tf.browser.fromPixels(
+
+        canvas,
+
+        1   // grayscale
+
+    );
+
+    // Resize image to 64x64
+    image = tf.image.resizeBilinear(
+
+        image,
+
+        [64,64]
+
+    );
+
+    // Normalize pixel values
+    image = image.div(255.0);
+
+    // Add batch dimension
+    image = image.expandDims(0);
+
+    // Run prediction
+    let prediction =
+        model.predict(image);
+
+    // Get highest probability index
+    let index =
+        prediction.argMax(1)
+        .dataSync()[0];
+
+    // Define labels
+    let labels = [
+
+        "Circle",
+
+        "Square",
+
+        "Triangle"
+
+    ];
+
+    // Display prediction
+    document.getElementById("result").innerText =
+        "Prediction: " +
+        labels[index];
+
+}
+
+</script>
+
+</body>
+
+</html>
