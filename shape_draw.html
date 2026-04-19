@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.22</h2>
+<h2>Draw a Shape v1.23</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -94,7 +94,7 @@ canvas.onmousemove = function(e) {
     if (!drawing) return;
 
     ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
 
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
@@ -271,6 +271,25 @@ function debugCanvas() {
     console.log("Avg pixel intensity:", sum / count);
 }
 
+function sharpenEdges(canvas) {
+
+    const ctx = canvas.getContext("2d");
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const d = img.data;
+
+    for (let i = 0; i < d.length; i += 4) {
+
+        let v = d[i];
+
+        // boost contrast
+        v = v > 120 ? 255 : 0;
+
+        d[i] = d[i+1] = d[i+2] = v;
+    }
+
+    ctx.putImageData(img, 0, 0);
+}
+	
 // ----------------------------
 // Prediction Function
 // ----------------------------
@@ -279,6 +298,7 @@ async function predictShape() {
 
     preprocess(canvas);     // optional but now effective
     centerShape(canvas);    // optional but now effective
+	sharpenEdges(canvas);
     debugCanvas();
 
     const tensor = getProcessedTensor(canvas);
