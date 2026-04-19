@@ -9,14 +9,14 @@
 <!-- This allows JavaScript to run neural networks -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 
-<title>Shape Recognition Demo v1.10</title>
+<title>Shape Recognition Demo</title>
 
 </head>
 
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.10</h2>
+<h2>Draw a Shape v1.11</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -176,7 +176,7 @@ async function predictShape(){
 
         image,
 
-        [128,128]
+        [64,64]
 
     );
 
@@ -189,7 +189,7 @@ image = tf.sub(1, image);
 	image =
     tf.image.resizeBilinear(
         image,
-        [128, 128]
+        [64, 64]
     );
 
 // Ensure grayscale
