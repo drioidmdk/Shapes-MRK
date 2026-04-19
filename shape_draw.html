@@ -21,8 +21,8 @@
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
 <canvas id="canvas"
-        width="200"
-        height="200"
+        width="96"
+        height="96"
         style="border:1px solid black">
 </canvas>
 
@@ -68,6 +68,8 @@ ctx.fillRect(
     200,
     200
 );
+
+	ctx.imageSmoothingEnabled = false;
 
 // Track whether mouse is drawing
 let drawing = false;
@@ -156,77 +158,56 @@ async function loadModel(){
 // Run model loading
 loadModel();
 
+function preprocessCanvas(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    for (let i = 0; i < img.data.length; i += 4) {
+
+        // convert to grayscale
+        let avg =
+            (img.data[i] +
+             img.data[i+1] +
+             img.data[i+2]) / 3;
+
+        let val = avg > 128 ? 255 : 0;
+
+        img.data[i] = val;
+        img.data[i+1] = val;
+        img.data[i+2] = val;
+    }
+
+    ctx.putImageData(img, 0, 0);
+}
+
 // ----------------------------
 // Prediction Function
 // ----------------------------
 
-async function predictShape(){
+async function predictShape() {
 
-    // Convert canvas to tensor
-    let image = tf.browser.fromPixels(
+	preprocessCanvas(canvas);
 
-        canvas,
+    const tensor = tf.browser.fromPixels(canvas, 1)
+        .resizeNearestNeighbor([96, 96])
+        .toFloat()
+        .div(255.0)
+        .expandDims(0);
 
-        1   // grayscale
+    const prediction = await model.predict(tensor).data();
 
-    );
+    console.log("Prediction:", prediction);
 
-    // Resize image to 64x64
-    image = tf.image.resizeBilinear(
+    const classes = ["circle", "square", "triangle"];
 
-        image,
+    const maxIndex = prediction.indexOf(Math.max(...prediction));
 
-        [64,64]
-
-    );
-
-    // Normalize pixel values
-    image = image.div(255.0);
-
-// Invert colors
-image = tf.sub(1, image);
-
-	image =
-    tf.image.resizeBilinear(
-        image,
-        [64, 64]
-    );
-
-// Ensure grayscale
-image =
-    image.mean(2).expandDims(2);
-
-    // Add batch dimension
-    image = image.expandDims(0);
-
-    // Run prediction
-   let prediction =
-    await model.executeAsync(image);
-
-    // Get highest probability index
-    let index =
-        prediction.argMax(1)
-        .dataSync()[0];
-
-	const scores = prediction.dataSync();
-console.log("Prediction scores:", scores);
-
-    // Define labels
-    let labels = [
-
-        "Circle",
-
-        "Square",
-
-        "Triangle"
-
-    ];
-
-    // Display prediction
     document.getElementById("result").innerText =
-        "Prediction: " +
-        labels[index];
+        classes[maxIndex];
 
+    tensor.dispose();
 }
 
 </script>
