@@ -171,7 +171,7 @@ function getProcessedTensor(canvas) {
 
         let v = (data[i] + data[i+1] + data[i+2]) / 3;
 
-        let bw = v > 128 ? 255 : 0;
+        let bw = v;  // > 128 ? 255 : 0;
 
         data[i] = bw;
         data[i+1] = bw;
@@ -233,25 +233,31 @@ function centerShape(canvas) {
 
 
 	
-function preprocessCanvas(canvas) {
+function preprocess(canvas) {
 
     const ctx = canvas.getContext("2d");
 
     let img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let d = img.data;
 
-    for (let i = 0; i < img.data.length; i += 4) {
+    // convert to grayscale first
+    for (let i = 0; i < d.length; i += 4) {
+        let v = (d[i] + d[i+1] + d[i+2]) / 3;
+        d[i] = d[i+1] = d[i+2] = v;
+    }
 
-        // convert to grayscale
-        let avg =
-            (img.data[i] +
-             img.data[i+1] +
-             img.data[i+2]) / 3;
+    // EDGE THINNING (critical fix)
+    for (let i = 4; i < d.length - 4; i += 4) {
 
-        let val = avg > 128 ? 255 : 0;
+        let v = d[i];
 
-        img.data[i] = val;
-        img.data[i+1] = val;
-        img.data[i+2] = val;
+        let left = d[i - 4];
+        let right = d[i + 4];
+
+        // keep only transitions (edges)
+        if (Math.abs(v - left) < 10 && Math.abs(v - right) < 10) {
+            d[i] = d[i+1] = d[i+2] = 0;
+        }
     }
 
     ctx.putImageData(img, 0, 0);
