@@ -210,6 +210,9 @@ image =
         prediction.argMax(1)
         .dataSync()[0];
 
+	const scores = prediction.dataSync();
+console.log("Prediction scores:", scores);
+
     // Define labels
     let labels = [
 
