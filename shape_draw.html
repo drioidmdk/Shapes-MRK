@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.17</h2>
+<h2>Draw a Shape v1.18</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -309,6 +309,13 @@ async function predictShape() {
     const pred = await model.predict(tensor).data();
 
     console.log(pred);
+
+	const labels = ["circle", "square", "triangle"];
+
+const maxIndex = pred.indexOf(Math.max(...pred));
+
+document.getElementById("result").innerText =
+    "Prediction: " + labels[maxIndex];
 }
 
 </script>
