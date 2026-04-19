@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.13</h2>
+<h2>Draw a Shape v1.14</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -182,12 +182,30 @@ function preprocessCanvas(canvas) {
     ctx.putImageData(img, 0, 0);
 }
 
+function debugCanvas() {
+
+    const ctx = canvas.getContext("2d");
+
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    let sum = 0;
+    let count = 0;
+
+    for (let i = 0; i < img.length; i += 4) {
+        sum += img[i]; // red channel (grayscale anyway)
+        count++;
+    }
+
+    console.log("Avg pixel intensity:", sum / count);
+}
+
 // ----------------------------
 // Prediction Function
 // ----------------------------
 
 async function predictShape() {
 
+	debugCanvas();
 	preprocessCanvas(canvas);
 
     const tensor = tf.browser.fromPixels(canvas, 1)
