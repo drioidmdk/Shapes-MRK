@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.14</h2>
+<h2>Draw a Shape v1.15</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -158,6 +158,81 @@ async function loadModel(){
 // Run model loading
 loadModel();
 
+
+function getProcessedTensor(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    let img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let data = img.data;
+
+    // 1. grayscale + hard threshold
+    for (let i = 0; i < data.length; i += 4) {
+
+        let v = (data[i] + data[i+1] + data[i+2]) / 3;
+
+        let bw = v > 128 ? 255 : 0;
+
+        data[i] = bw;
+        data[i+1] = bw;
+        data[i+2] = bw;
+    }
+
+    ctx.putImageData(img, 0, 0);
+
+    // 2. convert to tensor
+    return tf.browser.fromPixels(canvas, 1)
+        .resizeNearestNeighbor([96, 96])
+        .toFloat()
+        .div(255.0)
+        .expandDims(0);
+}
+
+function centerShape(canvas) {
+
+    const ctx = canvas.getContext("2d");
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    let minX = 9999, minY = 9999;
+    let maxX = 0, maxY = 0;
+
+    for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+
+            let i = (y * canvas.width + x) * 4;
+
+            if (img.data[i] > 20) {
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x);
+                maxY = Math.max(maxY, y);
+            }
+        }
+    }
+
+    let w = maxX - minX;
+    let h = maxY - minY;
+
+    let temp = document.createElement("canvas");
+    temp.width = w;
+    temp.height = h;
+
+    temp.getContext("2d").putImageData(
+        ctx.getImageData(minX, minY, w, h),
+        0, 0
+    );
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.drawImage(temp,
+        0, 0, w, h,
+        0, 0, canvas.width, canvas.height
+    );
+}
+
+
+
+	
 function preprocessCanvas(canvas) {
 
     const ctx = canvas.getContext("2d");
@@ -205,25 +280,19 @@ function debugCanvas() {
 
 async function predictShape() {
 
-	debugCanvas();
-	preprocessCanvas(canvas);
+    centerShape(canvas);
 
-    const tensor = tf.browser.fromPixels(canvas, 1)
-        .resizeNearestNeighbor([96, 96])
-        .toFloat()
-        .div(255.0)
-        .expandDims(0);
+    const tensor = getProcessedTensor(canvas);
 
     const prediction = await model.predict(tensor).data();
 
     console.log("Prediction:", prediction);
 
-    const classes = ["circle", "square", "triangle"];
+    const labels = ["circle", "square", "triangle"];
 
-    const maxIndex = prediction.indexOf(Math.max(...prediction));
+    const idx = prediction.indexOf(Math.max(...prediction));
 
-    document.getElementById("result").innerText =
-        classes[maxIndex];
+    document.getElementById("result").innerText = labels[idx];
 
     tensor.dispose();
 }
