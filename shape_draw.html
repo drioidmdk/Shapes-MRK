@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape</h2>
+<h2>Draw a Shape v1.10</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -176,7 +176,7 @@ async function predictShape(){
 
         image,
 
-        [64,64]
+        [128,128]
 
     );
 
@@ -189,7 +189,7 @@ image = tf.sub(1, image);
 	image =
     tf.image.resizeBilinear(
         image,
-        [64, 64]
+        [128, 128]
     );
 
 // Ensure grayscale
