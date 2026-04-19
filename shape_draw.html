@@ -145,9 +145,7 @@ let model;
 // Load model from folder
 async function loadModel(){
 
-    model = await tf.loadGraphModel(
-    "tfjs_model/model.json"
-	);
+   model = await tf.loadLayersModel("model.json");
 
     // Show ready message
     document.getElementById("result").innerText =
