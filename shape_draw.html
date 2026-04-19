@@ -185,6 +185,9 @@ async function predictShape(){
     // Normalize pixel values
     image = image.div(255.0);
 
+// Invert colors
+image = tf.sub(1, image);
+
     // Add batch dimension
     image = image.expandDims(0);
 
