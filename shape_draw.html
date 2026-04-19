@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.18</h2>
+<h2>Draw a Shape v1.19</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -286,38 +286,25 @@ function debugCanvas() {
 
 async function predictShape() {
 
-    const imgData = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-
-    let sum = 0;
-    let active = 0;
-
-    for (let i = 0; i < imgData.length; i += 4) {
-        let v = imgData[i];
-        sum += v;
-        if (v > 20) active++;
-    }
-
-    console.log("AVG:", sum / (imgData.length/4));
-    console.log("ACTIVE PIXELS:", active);
-
     const tensor = tf.browser.fromPixels(canvas, 1)
         .resizeNearestNeighbor([96, 96])
         .toFloat()
         .div(255.0)
         .expandDims(0);
 
-    const pred = await model.predict(tensor).data();
+    const prediction = await model.predict(tensor).data();
 
-    console.log(pred);
+    console.log("Prediction array:", prediction);
 
-	const labels = ["circle", "square", "triangle"];
+    const labels = ["circle", "square", "triangle"];
 
-const maxIndex = pred.indexOf(Math.max(...pred));
+    const maxIndex = prediction.indexOf(Math.max(...prediction));
 
-document.getElementById("result").innerText =
-    "Prediction: " + labels[maxIndex];
+    document.getElementById("result").innerText =
+        "Prediction: " + labels[maxIndex];
+
+    tensor.dispose();
 }
-
 </script>
 
 </body>
