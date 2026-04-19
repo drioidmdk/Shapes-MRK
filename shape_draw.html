@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.20</h2>
+<h2>Draw a Shape v1.21</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -47,6 +47,10 @@ Prediction will appear here
 
 <script>
 
+let drawing = false;
+let lastX = 0;
+let lastY = 0;
+
 // ----------------------------
 // Canvas Setup
 // ----------------------------
@@ -75,36 +79,32 @@ ctx.fillRect(
 let drawing = false;
 
 // Start drawing when mouse pressed
-canvas.onmousedown =
-    () => drawing = true;
-
+canvas.onmousedown = function(e) {
+    drawing = true;
+    lastX = e.offsetX;
+    lastY = e.offsetY;
+};
+	
 // Stop drawing when mouse released
 canvas.onmouseup =
     () => drawing = false;
 
 // Draw while mouse moves
-canvas.onmousemove =
-function(e){
+canvas.onmousemove = function(e) {
 
-    // If not drawing, stop
-    if(!drawing) return;
+    if (!drawing) return;
 
-    // Draw white pixels
-    ctx.fillStyle = "white";
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
 
     ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
 
-    // Draw small circle at mouse location
-ctx.strokeStyle = "white";
-ctx.lineWidth = 2;
-
-ctx.beginPath();
-ctx.moveTo(lastX, lastY);
-ctx.lineTo(e.offsetX, e.offsetY);
-ctx.stroke();
-
+    lastX = e.offsetX;
+    lastY = e.offsetY;
 };
-
 // ----------------------------
 // Clear Canvas Function
 // ----------------------------
