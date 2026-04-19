@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.19</h2>
+<h2>Draw a Shape v1.20</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -65,8 +65,8 @@ ctx.fillStyle = "black";
 ctx.fillRect(
     0,
     0,
-    200,
-    200
+    96,
+    96
 );
 
 	ctx.imageSmoothingEnabled = false;
@@ -95,21 +95,13 @@ function(e){
     ctx.beginPath();
 
     // Draw small circle at mouse location
-    ctx.arc(
+ctx.strokeStyle = "white";
+ctx.lineWidth = 2;
 
-        e.offsetX,
-
-        e.offsetY,
-
-        10,
-
-        0,
-
-        Math.PI * 2
-
-    );
-
-    ctx.fill();
+ctx.beginPath();
+ctx.moveTo(lastX, lastY);
+ctx.lineTo(e.offsetX, e.offsetY);
+ctx.stroke();
 
 };
 
@@ -126,8 +118,8 @@ function clearCanvas(){
 
         0,
         0,
-        200,
-        200
+        96,
+        96
 
     );
 
@@ -286,11 +278,11 @@ function debugCanvas() {
 
 async function predictShape() {
 
-    const tensor = tf.browser.fromPixels(canvas, 1)
-        .resizeNearestNeighbor([96, 96])
-        .toFloat()
-        .div(255.0)
-        .expandDims(0);
+    preprocess(canvas);     // optional but now effective
+    centerShape(canvas);    // optional but now effective
+    debugCanvas();
+
+    const tensor = getProcessedTensor(canvas);
 
     const prediction = await model.predict(tensor).data();
 
