@@ -99,7 +99,7 @@ function(e){
 
         e.offsetY,
 
-        5,
+        10,
 
         0,
 
@@ -187,6 +187,16 @@ async function predictShape(){
 
 // Invert colors
 image = tf.sub(1, image);
+
+	image =
+    tf.image.resizeBilinear(
+        image,
+        [64, 64]
+    );
+
+// Ensure grayscale
+image =
+    image.mean(2).expandDims(2);
 
     // Add batch dimension
     image = image.expandDims(0);
