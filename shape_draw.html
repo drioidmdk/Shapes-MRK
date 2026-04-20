@@ -16,7 +16,7 @@
 <body>
 
 <!-- Page title -->
-<h2>Draw a Shape v1.24</h2>
+<h2>Draw a Shape v2.0</h2>
 
 <!-- Drawing canvas -->
 <!-- width and height define drawing area -->
@@ -28,13 +28,11 @@
 
 <br><br>
 
-<!-- Predict button -->
-<button onclick="predictShape()">
+<button onclick="predictShape()" style="font-size:18px; padding:10px;">
 Predict Shape
 </button>
 
-<!-- Clear button -->
-<button onclick="clearCanvas()">
+<button onclick="clearCanvas()" style="font-size:18px; padding:10px;">
 Clear
 </button>
 
@@ -55,11 +53,9 @@ let lastY = 0;
 // Canvas Setup
 // ----------------------------
 
-// Get canvas element
 let canvas =
     document.getElementById("canvas");
 
-// Get drawing context
 let ctx =
     canvas.getContext("2d");
 
@@ -73,37 +69,153 @@ ctx.fillRect(
     96
 );
 
-	ctx.imageSmoothingEnabled = false;
+ctx.imageSmoothingEnabled = false;
 
 
+// Track drawing state
+let drawing = false;
 
-// Start drawing when mouse pressed
-canvas.onmousedown = function(e) {
+let lastX = 0;
+let lastY = 0;
+
+
+// ----------------------------
+// Get pointer position
+// Works for mouse OR touch
+// ----------------------------
+
+function getPosition(e) {
+
+    let rect = canvas.getBoundingClientRect();
+
+    let x, y;
+
+    if (e.touches) {
+
+        x = e.touches[0].clientX - rect.left;
+        y = e.touches[0].clientY - rect.top;
+
+    } else {
+
+        x = e.offsetX;
+        y = e.offsetY;
+
+    }
+
+    // Scale to canvas resolution
+    x = x * (canvas.width / rect.width);
+    y = y * (canvas.height / rect.height);
+
+    return { x, y };
+}
+
+
+// ----------------------------
+// Start Drawing
+// ----------------------------
+
+function startDrawing(e) {
+
+    e.preventDefault();
+
     drawing = true;
-    lastX = e.offsetX;
-    lastY = e.offsetY;
-};
-	
-// Stop drawing when mouse released
-canvas.onmouseup =
-    () => drawing = false;
 
-// Draw while mouse moves
-canvas.onmousemove = function(e) {
+    let pos = getPosition(e);
+
+    lastX = pos.x;
+    lastY = pos.y;
+}
+
+
+// ----------------------------
+// Draw Line
+// ----------------------------
+
+function draw(e) {
 
     if (!drawing) return;
 
+    e.preventDefault();
+
+    let pos = getPosition(e);
+
     ctx.strokeStyle = "white";
+
     ctx.lineWidth = 3;
 
+    ctx.lineCap = "round";
+	ctx.lineJoin = "round";
+
+
     ctx.beginPath();
+
     ctx.moveTo(lastX, lastY);
-    ctx.lineTo(e.offsetX, e.offsetY);
+
+    ctx.lineTo(pos.x, pos.y);
+
     ctx.stroke();
 
-    lastX = e.offsetX;
-    lastY = e.offsetY;
-};
+    lastX = pos.x;
+
+    lastY = pos.y;
+}
+
+
+// ----------------------------
+// Stop Drawing
+// ----------------------------
+
+function stopDrawing() {
+
+    drawing = false;
+}
+
+
+// ----------------------------
+// Mouse Events
+// ----------------------------
+
+canvas.addEventListener(
+    "mousedown",
+    startDrawing
+);
+
+canvas.addEventListener(
+    "mousemove",
+    draw
+);
+
+canvas.addEventListener(
+    "mouseup",
+    stopDrawing
+);
+
+canvas.addEventListener(
+    "mouseleave",
+    stopDrawing
+);
+
+
+// ----------------------------
+// Touch Events (Mobile/iPad)
+// ----------------------------
+
+canvas.addEventListener(
+    "touchstart",
+    startDrawing,
+    { passive:false }
+);
+
+canvas.addEventListener(
+    "touchmove",
+    draw,
+    { passive:false }
+);
+
+canvas.addEventListener(
+    "touchend",
+    stopDrawing
+);
 // ----------------------------
 // Clear Canvas Function
 // ----------------------------
